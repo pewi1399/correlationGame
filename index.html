@@ -5,13 +5,26 @@
     <script src="../d3/d3.min.js" charset="utf-8"></script>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
   </head>
+  <style>
+
+.bar rect {
+  fill: steelblue;
+}
+
+.bar text {
+  fill: #fff;
+  font: 10px sans-serif;
+}
+
+</style>
+  
   <body>
     <h2></h2>
     <h3></h3>
-  <svg width="700" height="700" id = "svg1"></svg>
+  <svg width="700" height="600" id = "svg1"></svg>
       <h3>buttons go here</h3>
-  <svg width="700" height="200" id = "svg2"></svg>
-  <svg width="700" height="200" id = "svg3"></svg>
+  <svg width="700" height="150" id = "svg2"></svg>
+  <svg width="700" height="150" id = "svg3"></svg>
   <!-- Begin D3 Javascript -->
   <script type="text/javascript">
   
@@ -120,7 +133,7 @@ var yAxis = d3.axisLeft()
 // ---------------------------- svg nr 2 ---------------------------------------
 
 var svg2 = d3.select("#svg2"),
-    margin2 = {top: 40, left: 40, bottom: 40, right: 40},
+    margin2 = {top: 15, left: 40, bottom: 40, right: 40},
     width2 = +svg2.attr("width") - margin2.left - margin2.right,
     height2 = +svg2.attr("height") - margin2.top - margin2.bottom;
 			/*.append("div")
@@ -139,7 +152,15 @@ var x2 = d3.scaleLinear()
     .domain([-1,1])
     .rangeRound([0, width2]);
 		  
-var guessData = [{"x":1, "y":1}, {"x":0.5, "y":1}, {"x":-0.1, "y":1}, {"x":0.9, "y":1}, {"x":0, "y":1}]
+//var guessData = [{"x":1, "y":1}, {"x":1, "y":1}, {"x":1, "y":1}, {"x":0.9, "y":1}, {"x":0, "y":1}]
+
+var guessData = []
+
+for(i=0; i<15; i++){
+    guessData[i] = {"x":getRandom(-1,1),"y":1}
+}
+
+var guessDataX = guessData.map(function(d) { return parseFloat(d['x']); }); 
 
 var g2 = svg2.append("g")
     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");;
@@ -155,7 +176,7 @@ for (var i = 0; i < 120; ++i) simulation.tick();
 
   g2.append("g")
       .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + height2 *0.80 + ")")
+      .attr("transform", "translate(0," + height2 + ")")
       .call(d3.axisBottom(x2));
 
   var cell = g2.append("g")
@@ -211,6 +232,41 @@ correctLine.enter()
 	.attr("y1", function(d) { return d[1]; })
 	.attr("y2", function(d) { return d[3]; }); 
 /*      */
+
+// ---------------------------- svg nr 3 ---------------------------------------
+
+var data3 = guessDataX
+
+var formatCount3 = d3.format(",.0f");
+
+var bins = d3.histogram()
+    .domain(x2.domain())
+    .thresholds(x2.ticks(20))
+    (data3);
+
+var yHist = d3.scaleLinear()
+    .domain([0, d3.max(bins, function(d) { return d.length; })])
+    .range([height2, 0]);
+
+var bar = g2.selectAll(".bar")
+    .data(bins)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
+
+bar.append("rect")
+    .attr("x", 1)
+    .attr("opacity", 0.3)
+    .attr("width", x2(bins[0].x1) - x2(bins[0].x0) - 1)
+    .attr("height", function(d) { return height2 - yHist(d.length); });
+
+bar.append("text")
+    .attr("dy", ".75em")
+    .attr("y", 6)
+    .attr("x", (x2(bins[0].x1) - x2(bins[0].x0)) / 2)
+    .attr("text-anchor", "middle")
+    .text(function(d) { return formatCount3(d.length); });
+
 //---------------------------- functions ---------------------------------------
 //------------------------- unhide regression line -----------------------------
 d3.selectAll(".trendline").transition(t).attr("opacity", 1)
