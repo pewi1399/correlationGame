@@ -8,7 +8,7 @@
   <style>
 
 .bar rect {
-  fill: steelblue;
+  fill: dodgerblue;
 }
 
 .bar text {
@@ -16,13 +16,56 @@
   font: 10px sans-serif;
 }
 
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 4px 2px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.button1 {
+    background-color: #4CAF50;
+    color: white;
+    border: 2px solid #4CAF50;
+}
+
+.button1:hover {
+    background-color: white;
+    color: black;
+}
+
+.button2 {
+    background-color: dodgerblue;
+    color: white;
+    border: 2px solid dodgerblue;
+}
+
+.button2:hover {
+    background-color: white;
+    color: black;
+}
+
+form { display: inline; }
 </style>
   
   <body>
     <h2></h2>
     <h3></h3>
   <svg width="700" height="600" id = "svg1"></svg>
-      <h3>buttons go here</h3>
+  <div>
+  <form action="" method="POST">
+    <button class="button button1" type="button" onclick="clicker(1)">Reset</button>
+    <button class="button button2" type="button" onclick="clicker(2)">Answer</button>
+  </form> 
+  </div>
   <svg width="700" height="150" id = "svg2"></svg>
   <svg width="700" height="150" id = "svg3"></svg>
   <!-- Begin D3 Javascript -->
@@ -299,6 +342,11 @@ d3.selectAll(".trendline").transition(t).attr("opacity", 1)
 
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
+}
+
+//------------------------------ on click --------------------------------------
+function clicker(x){
+    console.log(x)
 }
 
 //------------------------------ redraw ----------------------------------------
