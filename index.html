@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+<!DOCTYPE html >
+<meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8" />
+
 <html>
   <head>
     <!-- Load D3 from site -->
@@ -53,6 +55,17 @@
     color: black;
 }
 
+.button3 {
+    background-color: #f44336;
+    color: white;
+    border: 2px solid #f44336;
+}
+
+.button3:hover {
+    background-color: white ;
+    color: black;
+}
+
 form { display: inline; }
 </style>
   
@@ -63,7 +76,8 @@ form { display: inline; }
   <div>
   <form action="" method="POST">
     <button class="button button1" type="button" onclick="clicker(1)">Reset</button>
-    <button class="button button2" type="button" onclick="clicker(2)">Answer</button>
+    <button class="button button2" type="button" onclick="answer()">Answer</button>
+    <button class="button button3" type="button" onclick="guess()">Guess</button>
   </form> 
   </div>
   <svg width="700" height="150" id = "svg2"></svg>
@@ -87,7 +101,7 @@ var y = d3.scaleLinear()
     .range([height, 0]);
     
 var t = d3.transition()
-    .duration(1750);
+    .duration(2750);
     
 var g = svg.append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -97,7 +111,7 @@ var nNums = 20
 var data = []
 
 for(i = 0; i < nNums; i++){
-    data[i] = {"x":getRandom(100,400), "y":getRandom(100,400)};  
+    data[i] = {"x":getRandom(0,400), "y":getRandom(0,400)};  
 }
 
             
@@ -234,17 +248,7 @@ for (var i = 0; i < 120; ++i) simulation.tick();
       )
       .enter().append("g");
 
-  cell.append("circle")
-	  .attr("class", "bees")
-	  .attr("fill", "black")
-      .attr("r", 3)
-      //.attr("cx", function(d) { return d.x; })
-      //.attr("cy", function(d) { return d.y -100; })
-	  //.attr("cy", function(d) { return d.data.y; })
-	  //.transition()
-	  //.duration(function(d){return Math.random(1) * 3000 + Math.random(1) * 3000;})
-      .attr("cx", function(d) { return d.data.x; })
-      .attr("cy", function(d) { return d.data.y; });
+// appending actual bees goes here
       
 var formatValue = d3.format(",d"); 
 
@@ -270,10 +274,7 @@ correctLine.enter()
 	.attr("y2", height2/2)
 	.attr("stroke", "black")
 	.attr("opacity", 1)
-	.attr("stroke-width", 2)
-	.transition(t)
-	.attr("y1", function(d) { return d[1]; })
-	.attr("y2", function(d) { return d[3]; }); 
+	.attr("stroke-width", 2);
 /*      */
 
 // ---------------------------- svg nr 3 ---------------------------------------
@@ -297,22 +298,76 @@ var bar = g2.selectAll(".bar")
     .attr("class", "bar")
     .attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
 
-bar.append("rect")
-    .attr("x", 1)
-    .attr("opacity", 0.3)
-    .attr("width", x2(bins[0].x1) - x2(bins[0].x0) - 1)
-    .attr("height", function(d) { return height2 - yHist(d.length); });
-
-bar.append("text")
-    .attr("dy", ".75em")
-    .attr("y", 6)
-    .attr("x", (x2(bins[0].x1) - x2(bins[0].x0)) / 2)
-    .attr("text-anchor", "middle")
-    .text(function(d) { return formatCount3(d.length); });
+// drawing of bars goes here
 
 //---------------------------- functions ---------------------------------------
+
+//--------------------------- show guesses -------------------------------------
+function guess(){
+        
+        
+    cell.append("circle")
+      .attr("class", "bees")
+      .attr("fill", "black")
+      .attr("r", 3)
+      .attr("cy", function(d) { return d.data.y-100; })
+      .attr("cx", function(d) { return d.data.x; })
+      .transition(
+        d3.transition().duration(function(d, i) { return  2000; })
+      )
+      .attr("cx", function(d) { return d.data.x; })
+      .attr("cy", function(d) { return d.data.y; });
+          
+    bar.append("rect")
+        .attr("x", 1)
+        .attr("opacity", 0)
+        .attr("width", x2(bins[0].x1) - x2(bins[0].x0) - 1)
+        .attr("height", function(d) { return height2 - yHist(d.length); })
+        .transition(d3.transition().duration(3750))
+        .attr("opacity", 0.3);
+
+    bar.append("text")
+        .attr("dy", ".75em")
+        .attr("y", 6)
+        .attr("x", (x2(bins[0].x1) - x2(bins[0].x0)) / 2)
+        .attr("text-anchor", "middle")
+        .text(function(d) { return formatCount3(d.length); });
+}
+
 //------------------------- unhide regression line -----------------------------
-d3.selectAll(".trendline").transition(t).attr("opacity", 1)
+
+function answer(){
+
+    var tAnswer = d3.transition()
+        .duration(1750);
+
+    d3.selectAll(".trendline")
+        .transition(tAnswer)
+        .attr("opacity", 1);
+
+
+    d3.selectAll(".correctLine")
+        .transition(tAnswer)
+	    .attr("y1", function(d) { return d[1]; })
+	    .attr("y2", function(d) { return d[3]; }); 
+	    
+	    
+	svg.selectAll(".texts")
+                 .data([1])
+                 .enter()
+                 .append("text")
+                 .attr("class", "texts")
+                 .attr("x", width/2)
+                 .attr("y",height/2)
+                 .text("ρ ="+Math.round(leastSquaresCoeff[0]*100)/100)
+                 .attr("font-family", "sans-serif")
+                 .attr("font-size", "26px")
+                 .attr("opacity",0)
+                 .attr("fill", "grey")
+                 .transition(d3.transition().duration(2750).ease(d3.easeExpIn))
+                 .attr("opacity", "1");
+}
+
 
 
 //---------------------------- OLS regression ----------------------------------
