@@ -213,7 +213,7 @@ var x2 = d3.scaleLinear()
 var guessData = []
 
 for(i=0; i<15; i++){
-    guessData[i] = {"x":getRandom(-1,1),"y":1}
+    guessData[i] = {"x":getRandom(-0.1,0.1),"y":1}
 }
 
 var guessDataX = guessData.map(function(d) { return parseFloat(d['x']); }); 
