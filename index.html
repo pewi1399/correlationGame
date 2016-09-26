@@ -73,6 +73,7 @@ form { display: inline; }
     <h2></h2>
     <h3></h3>
   <svg width="700" height="600" id = "svg1"></svg>
+  <svg width="700" height="150" id = "svg2"></svg>
   <div>
   <form action="" method="POST">
     <button class="button button1" type="button" onclick="resets()">Reset</button>
@@ -80,8 +81,6 @@ form { display: inline; }
     <button class="button button3" type="button" onclick="guess()">Guess</button>
   </form> 
   </div>
-  <svg width="700" height="150" id = "svg2"></svg>
-  <svg width="700" height="150" id = "svg3"></svg>
   <!-- Begin D3 Javascript -->
   <script type="text/javascript">
   
@@ -134,11 +133,11 @@ var yAxis = d3.axisLeft()
 		var leastSquaresCoeff = leastSquares(xSeries, ySeries);
 		
 		// apply the reults of the least squares regression
-		var x1 = d3.min(xSeries);
-		var y1 = leastSquaresCoeff[0] + leastSquaresCoeff[1];
-		var x2 = d3.max(xSeries);
-		var y2 = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
-		var trendData = [[x1,y1,x2,y2]];
+		var x1line = d3.min(xSeries);
+		var y1line = leastSquaresCoeff[0] + leastSquaresCoeff[1];
+		var x2line = d3.max(xSeries);
+		var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
+		var trendData = [[x1line, y1line, x2line, y2line]];
 		
 		var trendline = g.selectAll(".trendline")
 			.data(trendData);
@@ -162,7 +161,7 @@ var yAxis = d3.axisLeft()
         .attr("class","dot")
         .attr("cy",function(d){ return y(d.y);})
         .attr("cx",function(d){ return x(d.x);})
-        .attr("r",6)
+        .attr("r",4.5)
         .attr("fill", "dodgerblue")
         
   g.append("g")
@@ -228,13 +227,40 @@ var simulation = d3.forceSimulation(guessData)
       .force("collide", d3.forceCollide(4))
       .stop();
 
-for (var i = 0; i < 120; ++i) simulation.tick();
+for (var i = 0; i < 300; ++i) simulation.tick();
 
 
   g2.append("g")
       .attr("class", "axis axis--x")
       .attr("transform", "translate(0," + height2 + ")")
       .call(d3.axisBottom(x2));
+	  
+	  
+// ---------------------------- svg nr 3 ---------------------------------------
+// object holding bees need to be placed before hist bars in order to 
+// keep track of 
+var data3 = guessDataX
+
+var formatCount3 = d3.format(",.0f");
+
+var bins = d3.histogram()
+    .domain(x2.domain())
+    .thresholds(x2.ticks(20))
+    (data3);
+
+var yHist = d3.scaleLinear()
+    .domain([0, d3.max(bins, function(d) { return d.length; })])
+    .range([height2, 0]);
+
+var bar = g2.selectAll(".bar")
+    .data(bins)
+  .enter().append("g")
+    .attr("class", "bar")
+    .attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
+
+// drawing of bars goes here
+// ---------------------------- end svg nr 3 ------------------------------------
+
 
   var cell = g2.append("g")
       .attr("class", "cells")
@@ -277,37 +303,14 @@ correctLine.enter()
 	.attr("stroke-width", 2);
 /*      */
 
-// ---------------------------- svg nr 3 ---------------------------------------
 
-var data3 = guessDataX
-
-var formatCount3 = d3.format(",.0f");
-
-var bins = d3.histogram()
-    .domain(x2.domain())
-    .thresholds(x2.ticks(20))
-    (data3);
-
-var yHist = d3.scaleLinear()
-    .domain([0, d3.max(bins, function(d) { return d.length; })])
-    .range([height2, 0]);
-
-var bar = g2.selectAll(".bar")
-    .data(bins)
-  .enter().append("g")
-    .attr("class", "bar")
-    .attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
-
-// drawing of bars goes here
 
 //---------------------------- functions ---------------------------------------
 
 //--------------------------- show guesses -------------------------------------
 function guess(){
         
-       //var tGuess =  d3.transition().ease(d3.easeExpIn)
-	   
-			
+		
     cell.append("circle")
       .attr("class", "bees")
       .attr("fill", "black")
@@ -315,7 +318,7 @@ function guess(){
       .attr("cy", function(d) { return d.data.y-100; })
       .attr("cx", function(d) { return d.data.x; })
 	  .transition()
-	  .duration(function(d,i) { return (i+1) * 1000+200; })
+	  .duration(function(d,i) { return (i+1) * 600+200; })
       .attr("cx", function(d) { return d.data.x; })
       .attr("cy", function(d) { return d.data.y; });
           
@@ -334,7 +337,13 @@ function guess(){
         .attr("y", 6)
         .attr("x", (x2(bins[0].x1) - x2(bins[0].x0)) / 2)
         .attr("text-anchor", "middle")
-        .text(function(d) { return formatCount3(d.length); });
+        .text(function(d) {
+			if(formatCount3(d.length) == 0){
+				return "";
+			}else{
+				return formatCount3(d.length);
+			}
+			});
 }
 
 //------------------------- unhide regression line -----------------------------
@@ -374,7 +383,8 @@ function answer(){
 //----------------------------------- reset  --------------------------------------
 
 function resets(){console.log("over 9000!")
-
+	// -------------------- part 1: clean up old elements ----------------------
+	//remove all old elements
 	d3.selectAll(".trendline").remove();
 	d3.selectAll(".texts").remove();
 	d3.selectAll(".dot").remove();
@@ -383,6 +393,86 @@ function resets(){console.log("over 9000!")
 	d3.selectAll(".rect").remove();
 	d3.selectAll(".rect_text").remove();
 	d3.selectAll(".bees").remove();
+	
+	
+	// ---------------------------- part 2: redraw  -------------------------------
+	// generate new data
+	var data = []
+
+	for(i = 0; i < nNums; i++){
+		data[i] = {"x":getRandom(0,400), "y":getRandom(0,400)};  
+	}
+	
+	var xSeries = data.map(function(d) { return parseFloat(d['x']); })
+	var ySeries = data.map(function(d) { return parseFloat(d['y']); });
+	
+	var leastSquaresCoeff = leastSquares(xSeries, ySeries);
+	
+	// apply the reults of the least squares regression
+	var x1line = d3.min(xSeries);
+	var y1line = leastSquaresCoeff[0] + leastSquaresCoeff[1];
+	var x2line = d3.max(xSeries);
+	var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
+	var trendData = [[x1line, y1line, x2line, y2line]];
+	
+	var trendline = g.selectAll(".trendline")
+		.data(trendData);
+	
+	//puts in new trendline	
+	trendline.enter()
+		.append("line")
+		.attr("class", "trendline")
+		.attr("x1", function(d) { return x(d[0]); })
+		.attr("y1", function(d) { return y(d[1]); })
+		.attr("x2", function(d) { return x(d[2]); })
+		.attr("y2", function(d) { return y(d[3]); })
+		.attr("stroke", "black")
+		.attr("opacity", 0)
+		.attr("stroke-width", 2);
+	
+	//adds new points		
+    g.selectAll(".dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class","dot")
+        .attr("cy",function(d){ return y(d.y);})
+        .attr("cx",function(d){ return x(d.x);})
+        .attr("r",4.5)
+        .attr("fill", "dodgerblue")
+		
+	// new answer	
+	svg.selectAll(".texts")
+                 .data([1])
+                 .enter()
+                 .append("text")
+                 .attr("class", "texts")
+                 .attr("x", width/2)
+                 .attr("y",height/2)
+                 .text("ρ ="+Math.round(leastSquaresCoeff[0]*100)/100)
+                 .attr("font-family", "sans-serif")
+                 .attr("font-size", "26px")
+                 .attr("opacity",0)
+                 .attr("fill", "grey")
+                 .transition(d3.transition().duration(2750).ease(d3.easeExpIn))
+                 .attr("opacity", "1");
+				 
+				 
+	var correctData = [[leastSquaresCoeff[0],0,leastSquaresCoeff[0],height2]]
+
+	var correctLine = g2.selectAll(".correctLine")
+		.data(correctData);  
+	  
+	correctLine.enter()
+		.append("line")
+		.attr("class", "correctLine")
+		.attr("x1", function(d) { return x2(d[0]);})
+		.attr("x2", function(d) { return x2(d[2]); })
+		.attr("y1", height2/2)
+		.attr("y2", height2/2)
+		.attr("stroke", "black")
+		.attr("opacity", 1)
+		.attr("stroke-width", 2);
 
 
 }
@@ -414,43 +504,7 @@ function resets(){console.log("over 9000!")
 
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
-}
-
-//------------------------------ on click --------------------------------------
-function clicker(x){
-    console.log(x)
-}
-
-//------------------------------ redraw ----------------------------------------
-
-function redraw(){
-
-    var data = [window.data[1], window.data[0]]
-    
-    var t = d3.transition()
-    .duration(1750)
-    .ease(d3.easeBounceOut);
-    
-    d3.selectAll(".dot")
-        .data(data)
-        .transition(t)
-        .attr("cy",function(d){ return d.y;})
-        .attr("cx",function(d){ return d.x;})   
-
-    window.data = data
-}
-     
-     
-var values = [
-  { val : 1 }, { val : 1 }, { val : 4 }, { val : 5 }, { val : 23 }, 
-  { val : 1 }, { val : 4 }
-];
-var hist = d3.histogram()
-  .thresholds(3)
-  .value(function(d) { 
-    return d.val; 
-  });   
-        
+}        
   </script>
   
   </body>
