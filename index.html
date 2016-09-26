@@ -4,7 +4,7 @@
 <html>
   <head>
     <!-- Load D3 from site -->
-    <script src="../d3/d3.min.js" charset="utf-8"></script>
+    <script src="d3/d3.min.js" charset="utf-8"></script>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
   </head>
   <style>
@@ -75,7 +75,7 @@ form { display: inline; }
   <svg width="700" height="600" id = "svg1"></svg>
   <div>
   <form action="" method="POST">
-    <button class="button button1" type="button" onclick="clicker(1)">Reset</button>
+    <button class="button button1" type="button" onclick="resets()">Reset</button>
     <button class="button button2" type="button" onclick="answer()">Answer</button>
     <button class="button button3" type="button" onclick="guess()">Guess</button>
   </form> 
@@ -305,20 +305,22 @@ var bar = g2.selectAll(".bar")
 //--------------------------- show guesses -------------------------------------
 function guess(){
         
-        
+       //var tGuess =  d3.transition().ease(d3.easeExpIn)
+	   
+			
     cell.append("circle")
       .attr("class", "bees")
       .attr("fill", "black")
       .attr("r", 3)
       .attr("cy", function(d) { return d.data.y-100; })
       .attr("cx", function(d) { return d.data.x; })
-      .transition(
-        d3.transition().duration(function(d, i) { return  2000; })
-      )
+	  .transition()
+	  .duration(function(d,i) { return (i+1) * 1000+200; })
       .attr("cx", function(d) { return d.data.x; })
       .attr("cy", function(d) { return d.data.y; });
           
     bar.append("rect")
+		.attr("class", "rect")
         .attr("x", 1)
         .attr("opacity", 0)
         .attr("width", x2(bins[0].x1) - x2(bins[0].x0) - 1)
@@ -327,6 +329,7 @@ function guess(){
         .attr("opacity", 0.3);
 
     bar.append("text")
+		.attr("class", "rect_text")
         .attr("dy", ".75em")
         .attr("y", 6)
         .attr("x", (x2(bins[0].x1) - x2(bins[0].x0)) / 2)
@@ -368,7 +371,21 @@ function answer(){
                  .attr("opacity", "1");
 }
 
+//----------------------------------- reset  --------------------------------------
 
+function resets(){console.log("over 9000!")
+
+	d3.selectAll(".trendline").remove();
+	d3.selectAll(".texts").remove();
+	d3.selectAll(".dot").remove();
+
+	d3.selectAll(".correctLine").remove();
+	d3.selectAll(".rect").remove();
+	d3.selectAll(".rect_text").remove();
+	d3.selectAll(".bees").remove();
+
+
+}
 
 //---------------------------- OLS regression ----------------------------------
 	// returns slope, intercept and r-square of the line
