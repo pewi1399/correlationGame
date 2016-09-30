@@ -5,6 +5,7 @@
   <head>
     <!-- Load D3 from site -->
     <script src="d3/d3.min.js" charset="utf-8"></script>
+	<script type="text/javascript" src="src/tabletop.js"></script>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
   </head>
   <style>
@@ -72,19 +73,73 @@ form { display: inline; }
   <body>
     <h2></h2>
     <h3></h3>
+	<div>
   <svg width="700" height="600" id = "svg1"></svg>
+  </div>
+  <div>
   <svg width="700" height="150" id = "svg2"></svg>
+  </div>
   <div>
   <form action="" method="POST">
     <button class="button button1" type="button" onclick="resets()">Reset</button>
     <button class="button button2" type="button" onclick="answer()">Answer</button>
-    <button class="button button3" type="button" onclick="guess()">Guess</button>
+    <button class="button button3" type="button" onclick="guesser()">Guess</button>
   </form> 
   </div>
   <!-- Begin D3 Javascript -->
   <script type="text/javascript">
   
+  
+  
+  //------------------------------ get tabletop data
+  //window.onload = function() { init() };
 
+	  var public_spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1MwtTuLJRzq1wgqfP1jeQwXOCjmXbLlrv2xEZjLtEZ4Y/pubhtml';
+	  
+	  function init() {
+		Tabletop.init( { key: public_spreadsheet_url,
+						 callback: showInfo,
+						 simpleSheet: true } )
+	  }
+
+	  function showInfo(data, tabletop) {
+
+					
+		for(i=0; i<data.length; i++){
+			data[i].time = d3.timeHour.offset(formatMonth(data[i].Timestamp)-3600000*3)
+		}
+			
+		var tmp = data.filter(function(d) { return d.time > dt})	
+			
+		window.gd = tmp
+	  }
+	//-----------------------------
+
+	//--------------------------------- locale
+	var swe_SWE = {
+		"decimal": ",",
+			"thousands": " ",
+			"grouping": [3],
+			"currency": ["", " руб."],
+			"dateTime": "%A, %e %B %Y г. %X",
+			"date": "%d.%m.%Y",
+			"time": "%H:%M:%S",
+			"periods": ["AM", "PM"],
+			"days": ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"],
+			"shortDays": ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+			"months": ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+			"shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+	}
+	//----------------------------------------
+			
+			
+	var drawPadding = 10000;
+	var SWE = d3.formatLocale(swe_SWE);
+	
+	var formatMonth = d3.utcParse("%d/%m/%Y %H:%M:%S");
+	
+	var dt = new Date();
+	
     // Setup settings for graphic
 var svg = d3.select("#svg1"),
     margin = {top: 40, left: 40, bottom: 40, right: 40},
@@ -210,99 +265,15 @@ var x2 = d3.scaleLinear()
 		  
 //var guessData = [{"x":1, "y":1}, {"x":1, "y":1}, {"x":1, "y":1}, {"x":0.9, "y":1}, {"x":0, "y":1}]
 
-var guessData = []
-
-for(i=0; i<15; i++){
-    guessData[i] = {"x":getRandom(-0.1,0.1),"y":1}
-}
-
-var guessDataX = guessData.map(function(d) { return parseFloat(d['x']); }); 
-
-
-var diff = []
-// calculate what guess is the winner 
-for(i = 0; i< guessDataX.length; i++){
-	diff[i] = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
-	guessData[i].diff  = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
-}
-
-var winner = Math.min.apply(Math, diff)
-
-for(i = 0; i< guessData.length; i++){
-	if(guessData[i].diff == winner){
-		guessData[i].winner  = 1;
-	}else{
-		guessData[i].winner  = 0;
-	}
-}
 
 var g2 = svg2.append("g")
     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");;
-
-var simulation = d3.forceSimulation(guessData)
-      .force("x", d3.forceX(function(d) { return x2(d.x); }).strength(1))
-      .force("y", d3.forceY(height2 / 2))
-      .force("collide", d3.forceCollide(4))
-      .stop();
-
-for (var i = 0; i < 300; ++i) simulation.tick();
-
-
+	
+	
   g2.append("g")
-      .attr("class", "axis axis--x")
-      .attr("transform", "translate(0," + height2 + ")")
-      .call(d3.axisBottom(x2));
-	  
-	  
-// ---------------------------- svg nr 3 ---------------------------------------
-// object holding bees need to be placed before hist bars in order to 
-// keep track of 
-var data3 = guessDataX
-
-var formatCount3 = d3.format(",.0f");
-
-var bins = d3.histogram()
-    .domain(x2.domain())
-    .thresholds(x2.ticks(20))
-    (data3);
-
-var yHist = d3.scaleLinear()
-    .domain([0, d3.max(bins, function(d) { return d.length; })])
-    .range([height2, 0]);
-
-var bar = g2.selectAll(".bar")
-    .data(bins)
-  .enter().append("g")
-    .attr("class", "bar")
-    .attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
-
-// drawing of bars goes here
-// ---------------------------- end svg nr 3 ------------------------------------
-
-
-  var cell = g2.append("g")
-      .attr("class", "cells")
-    .selectAll("g")
-    .data(
-        d3.voronoi()
-            .extent([[-margin2.left, -margin2.top], [width2 + margin2.right, height2 + margin2.top]])
-            .x(function(d) { return d.x; })
-            .y(function(d) { return d.y; })
-            .polygons(guessData)
-      )
-      .enter().append("g");
-
-// appending actual bees goes here
-      
-var formatValue = d3.format(",d"); 
-
-// add voronoi path for easier selection
-cell.append("path")
-      .attr("d", function(d) { return "M" + d.join("L") + "Z"; });  
-
-// this gives hover of sorts
-cell.append("title")
-      .text(function(d) { return d.data.value + "\n" + formatValue(d.data.x); });
+  .attr("class", "axis axis--x")
+  .attr("transform", "translate(0," + height2 + ")")
+  .call(d3.axisBottom(x2));
 
 var correctData = [[leastSquaresCoeff[0],0,leastSquaresCoeff[0],height2]]
 
@@ -324,7 +295,110 @@ correctLine.enter()
 //---------------------------- functions ---------------------------------------
 
 //--------------------------- show guesses -------------------------------------
+function guesser(){
+	init();
+	wait(7000);
+	guess();
+
+}
+
+function wait(ms){
+   var start = new Date().getTime();
+   var end = start;
+   while(end < start + ms) {
+     end = new Date().getTime();
+  }
+}
+
 function guess(){
+
+	var guessData = gd
+
+	/*
+	for(i=0; i<15; i++){
+		guessData[i] = {"Correlation coefficient":getRandom(-01,01), "Name":i}
+	}
+
+	var testData = guessData
+*/
+	var guessDataX = guessData.map(function(d) { return parseFloat(d['Correlation coefficient']); }); 
+
+
+	var diff = []
+	// calculate what guess is the winner 
+	for(i = 0; i< guessDataX.length; i++){
+		diff[i] = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
+		guessData[i].diff  = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
+	}
+
+	var winner = Math.min.apply(Math, diff)
+
+	for(i = 0; i< guessData.length; i++){
+		if(guessData[i].diff == winner){
+			guessData[i].winner  = 1;
+		}else{
+			guessData[i].winner  = 0;
+		}
+	}
+
+	var simulation = d3.forceSimulation(guessData)
+		  .force("x", d3.forceX(function(d) { return x2(d["Correlation coefficient"]); }).strength(1))
+		  .force("y", d3.forceY(height2 / 2))
+		  .force("collide", d3.forceCollide(4))
+		  .stop();
+
+	for (var i = 0; i < 300; ++i) simulation.tick();
+		  
+		  
+	// ---------------------------- svg nr 3 ---------------------------------------
+	// object holding bees need to be placed before hist bars in order to 
+	// keep track of 
+	var data3 = guessDataX
+
+	var formatCount3 = d3.format(",.0f");
+
+	var bins = d3.histogram()
+		.domain(x2.domain())
+		.thresholds(x2.ticks(20))
+		(data3);
+
+	var yHist = d3.scaleLinear()
+		.domain([0, d3.max(bins, function(d) { return d.length; })])
+		.range([height2, 0]);
+
+	var bar = g2.selectAll(".bar")
+		.data(bins)
+	  .enter().append("g")
+		.attr("class", "bar")
+		.attr("transform", function(d) { return "translate(" + x2(d.x0) + "," + yHist(d.length) + ")"; });
+
+	// drawing of bars goes here
+	// ---------------------------- end svg nr 3 ------------------------------------
+
+
+	  var cell = g2.append("g")
+		  .attr("class", "cells")
+		.selectAll("g")
+		.data(
+			d3.voronoi()
+				.extent([[-margin2.left, -margin2.top], [width2 + margin2.right, height2 + margin2.top]])
+				.x(function(d) { return d.x; })
+				.y(function(d) { return d.y; })
+				.polygons(guessData)
+		  )
+		  .enter().append("g");
+
+	// appending actual bees goes here
+		  
+	var formatValue = d3.format(",d"); 
+
+	// add voronoi path for easier selection
+	cell.append("path")
+		  .attr("d", function(d) { return "M" + d.join("L") + "Z"; });  
+
+	// this gives hover of sorts
+	cell.append("title")
+		  .text(function(d) { return d.data.value + "\n" + formatValue(d.data.x); });
         
 		
     cell.append("circle")
@@ -337,6 +411,8 @@ function guess(){
 	  .duration(function(d,i) { return (i+1) * 600+200; })
       .attr("cx", function(d) { return d.data.x; })
       .attr("cy", function(d) { return d.data.y; });
+	  
+	window.cell = cell
 
           
     bar.append("rect")
@@ -404,8 +480,24 @@ function answer(){
 	  
 	  }
 	  );
+	  
+	 cell.append("text")
+	 .attr("class", "textbees")
+	 .attr("x", function(d){ return d.data.x-30;})
+	 .attr("y", function(d){ return d.data.y -10;})
+	 .text(function(d){
+		if(d.data.winner == 1){
+			return "Winner! :" + d.data.Name;
+		}else{
+			return "";}
+		})
+		.attr("opacity", 0)
+		.transition(tAnswer)
+		.attr("opacity", 1)
 	    
 	    
+	
+		
 	svg.selectAll(".texts")
                  .data([1])
                  .enter()
@@ -425,6 +517,10 @@ function answer(){
 //----------------------------------- reset  --------------------------------------
 
 function resets(){console.log("over 9000!")
+
+
+
+	var dt = new Date();
 	// -------------------- part 1: clean up old elements ----------------------
 	//remove all old elements
 	d3.selectAll(".trendline").remove();
@@ -435,6 +531,7 @@ function resets(){console.log("over 9000!")
 	d3.selectAll(".rect").remove();
 	d3.selectAll(".rect_text").remove();
 	d3.selectAll(".bees").remove();
+	d3.selectAll(".textbees").remove();
 	
 	
 	// ---------------------------- part 2: redraw  -------------------------------
