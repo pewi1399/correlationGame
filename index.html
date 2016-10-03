@@ -198,7 +198,7 @@ var yAxis = d3.axisLeft()
 		
 		// apply the reults of the least squares regression
 		var x1line = d3.min(xSeries);
-		var y1line = leastSquaresCoeff[0];
+		var y1line = leastSquaresCoeff[1];
 		var x2line = d3.max(xSeries);
 		var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
 		var trendData = [[x1line, y1line, x2line, y2line]];
