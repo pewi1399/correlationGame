@@ -83,7 +83,7 @@ form { display: inline; }
   <form action="" method="POST">
     <button class="button button1" type="button" onclick="resets()">Reset</button>
     <button class="button button2" type="button" onclick="answer()">Answer</button>
-    <button class="button button3" type="button" onclick="guesser()">Guess</button>
+    <button class="button button3" type="button" onclick="init()">Guess</button>
   </form> 
   </div>
   <!-- Begin D3 Javascript -->
@@ -102,17 +102,7 @@ form { display: inline; }
 						 simpleSheet: true } )
 	  }
 
-	  function showInfo(data, tabletop) {
 
-					
-		for(i=0; i<data.length; i++){
-			data[i].time = d3.timeHour.offset(formatMonth(data[i].Timestamp)-3600000*3)
-		}
-			
-		var tmp = data.filter(function(d) { return d.time > dt})	
-			
-		window.gd = tmp
-	  }
 	//-----------------------------
 
 	//--------------------------------- locale
@@ -267,6 +257,7 @@ var x2 = d3.scaleLinear()
 
 
 var g2 = svg2.append("g")
+	.attr("class", "g2_container")
     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");;
 	
 	
@@ -291,28 +282,20 @@ correctLine.enter()
 	.attr("opacity", 1)
 	.attr("stroke-width", 2);
 /*      */
-
+window.g2 = g2
 //---------------------------- functions ---------------------------------------
 
 //--------------------------- show guesses -------------------------------------
-function guesser(){
-	init();
-	wait(7000);
-	guess();
 
-}
+function showInfo(data, tabletop) {
 
-function wait(ms){
-   var start = new Date().getTime();
-   var end = start;
-   while(end < start + ms) {
-     end = new Date().getTime();
-  }
-}
-
-function guess(){
-
-	var guessData = gd
+					
+		for(i=0; i<data.length; i++){
+			data[i].time = d3.timeHour.offset(formatMonth(data[i].Timestamp)-3600000*3)
+		}
+			
+		var guessData = data//data.filter(function(d) { return d.time > dt})	
+			
 
 	/*
 	for(i=0; i<15; i++){
@@ -593,8 +576,8 @@ function resets(){console.log("over 9000!")
                  .attr("font-size", "26px")
                  .attr("opacity",0)
                  .attr("fill", "grey")
-                 .transition(d3.transition().duration(2750).ease(d3.easeExpIn))
-                 .attr("opacity", "1");
+                 //.transition(d3.transition().duration(2750).ease(d3.easeExpIn))
+                 //.attr("opacity", "1");
 				 
 				 
 	var correctData = [[leastSquaresCoeff[0],0,leastSquaresCoeff[0],height2]]
