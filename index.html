@@ -334,13 +334,11 @@ function showInfo(data, tabletop) {
 		var guessData = data.filter(function(d) { return d.time > dt})	
 			
 
-	/*
-	for(i=0; i<15; i++){
-		guessData[i] = {"Correlation coefficient":getRandom(-01,01), "Name":i}
+	
+	for(i=0; i<  guessData.length; i++){
+		guessData[i]["Correlation coefficient"]= guessData[i]["Correlation coefficient"].replace(",", ".")
 	}
 
-	var testData = guessData
-*/
 	var guessDataX = guessData.map(function(d) { return parseFloat(d['Correlation coefficient']); }); 
 
 
