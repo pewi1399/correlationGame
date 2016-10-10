@@ -6,6 +6,7 @@
     <!-- Load D3 from site -->
     <script src="d3/d3.min.js" charset="utf-8"></script>
 	<script type="text/javascript" src="src/tabletop.js"></script>
+		<script type="text/javascript" src="src/pearson-correlation.js"></script>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
   </head>
   <style>
@@ -81,7 +82,7 @@ form { display: inline; }
   </div>
   <div>
   <form action="" method="POST">
-    <button class="button button1" type="button" onclick="resets()">Reset</button>
+    <!--<button class="button button1" type="button" onclick="resets()">Reset</button>-->
     <button class="button button2" type="button" onclick="answer()">Answer</button>
     <button class="button button3" type="button" onclick="init()">Guess</button>
   </form> 
@@ -169,9 +170,17 @@ function correlatedValue(x, r){
   return(out)
 }
 
-for(i = 0; i < nNums; i++){
-    data[i]["y"] = correlatedValue(data[i].x, -0.9)
+if(Math.random()>0.5){
+	for(i = 0; i < nNums; i++){
+		data[i]["y"] = correlatedValue(data[i].x, -0.9)
+	}
+}else{
+	for(i = 0; i < nNums; i++){
+		data[i]["y"] = correlatedValue(data[i].x, 0.9)
+	}
 }
+	
+
 
 //x.domain(d3.extent(data, function(d) { return d.x; })).nice();
 //y.domain(d3.extent(data, function(d) { return d.y; })).nice();
@@ -202,6 +211,8 @@ var yAxis = d3.axisLeft()
 		var x2line = d3.max(xSeries);
 		var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
 		var trendData = [[x1line, y1line, x2line, y2line]];
+		
+		var trueCorr = pearsonCorrelation([xSeries,ySeries], 0,1)
 		
 		var trendline = g.selectAll(".trendline")
 			.data(trendData);
@@ -285,7 +296,7 @@ var g2 = svg2.append("g")
   .attr("transform", "translate(0," + height2 + ")")
   .call(d3.axisBottom(x2));
 
-var correctData = [[Math.sqrt(leastSquaresCoeff[2]),0,Math.sqrt(leastSquaresCoeff[2]),height2]]
+var correctData = [[trueCorr ,0, trueCorr ,height2]]
 
 var correctLine = g2.selectAll(".correctLine")
 	.data(correctData);  
@@ -329,8 +340,8 @@ function showInfo(data, tabletop) {
 	var diff = []
 	// calculate what guess is the winner 
 	for(i = 0; i< guessDataX.length; i++){
-		diff[i] = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
-		guessData[i].diff  = Math.abs((guessDataX[i] - leastSquaresCoeff[0]))
+		diff[i] = Math.abs((guessDataX[i] - trueCorr ))
+		guessData[i].diff  = Math.abs((guessDataX[i] -trueCorr ))
 	}
 
 	var winner = Math.min.apply(Math, diff)
@@ -485,11 +496,11 @@ function answer(){
 	  
 	 cell.append("text")
 	 .attr("class", "textbees")
-	 .attr("x", function(d){ return d.data.x-30;})
+	 .attr("x", function(d){ return d.data.x-20;})
 	 .attr("y", function(d){ return d.data.y -10;})
 	 .text(function(d){
 		if(d.data.winner == 1){
-			return "Winner! :" + d.data.Name;
+			return d.data.Name;
 		}else{
 			return "";}
 		})
@@ -507,7 +518,7 @@ function answer(){
                  .attr("class", "texts")
                  .attr("x", width/2)
                  .attr("y",height/2)
-                 .text("ρ ="+Math.round(Math.sqrt(leastSquaresCoeff[2])*100)/100)
+                 .text("ρ ="+Math.round(trueCorr*100)/100)
                  .attr("font-family", "sans-serif")
                  .attr("font-size", "26px")
                  .attr("opacity",0)
