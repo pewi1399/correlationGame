@@ -500,24 +500,7 @@ function answer(){
 	  
 	  }
 	  );
-	  
-	 cell.append("text")
-	 .attr("class", "textbees")
-	 .attr("x", function(d){ return d.data.x-20;})
-	 .attr("y", function(d){ return d.data.y -10;})
-	 .text(function(d){
-		if(d.data.winner == 1){
-			return d.data.Name;
-		}else{
-			return "";}
-		})
-		.attr("opacity", 0)
-		.transition(tAnswer)
-		.attr("opacity", 1)
-	    
-	    
-	
-		
+	  	    
 	svg.selectAll(".texts")
                  .data([1])
                  .enter()
@@ -532,6 +515,20 @@ function answer(){
                  .attr("fill", "grey")
                  .transition(d3.transition().duration(2750).ease(d3.easeExpIn))
                  .attr("opacity", "1");
+				 
+	cell.append("text")
+	 .attr("class", "textbees")
+	 .attr("x", function(d){ return d.data.x-20;})
+	 .attr("y", function(d){ return d.data.y -10;})
+	 .text(function(d){
+		if(d.data.winner == 1){
+			return d.data.Name;
+		}else{
+			return "";}
+		})
+		.attr("opacity", 0)
+		.transition(tAnswer)
+		.attr("opacity", 1)
 }
 
 //----------------------------------- reset  --------------------------------------
