@@ -69,18 +69,24 @@
 }
 
 form { display: inline; }
+
+.center {
+    margin: auto;
+    width: 40%;
+    padding: 10px;
+}
 </style>
   
   <body>
     <h2></h2>
     <h3></h3>
-	<div>
+	<div class="center">
   <svg width="700" height="600" id = "svg1"></svg>
   </div>
-  <div>
+  <div class="center">
   <svg width="700" height="150" id = "svg2"></svg>
   </div>
-  <div>
+  <div class="center">
   <form action="" method="POST">
     <!--<button class="button button1" type="button" onclick="resets()">Reset</button>-->
     <button class="button button2" type="button" onclick="answer()">Answer</button>
@@ -325,7 +331,7 @@ function showInfo(data, tabletop) {
 			data[i].time = d3.timeHour.offset(formatMonth(data[i].Timestamp)-3600000*3)
 		}
 			
-		var guessData = data//data.filter(function(d) { return d.time > dt})	
+		var guessData = data.filter(function(d) { return d.time > dt})	
 			
 
 	/*
