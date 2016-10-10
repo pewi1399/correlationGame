@@ -154,38 +154,37 @@ var g = svg.append("g")
 var nNums = 20
 
 var data = []
-var standard = gaussian(0, 1);
 
 for(i = 0; i < nNums; i++){
-    data[i] = {"x":standard()};  
+    data[i] = {"x":normal(0,1,1)};  
 }
 
 function correlatedValue(x, r){
-  var r2 = r**2
+  var r2 = r^2
   var ve = 1-r2
   var SD = Math.sqrt(ve)
-  var standard = gaussian(0, 1);
-  var e  = standard(0, sd=SD)
+  var e  = normal(0, SD, 1)
   var out  = r*x + e
   return(out)
 }
 
-if(Math.random()>0.5){
-	for(i = 0; i < nNums; i++){
-		data[i]["y"] = correlatedValue(data[i].x, -0.9)
-	}
-}else{
-	for(i = 0; i < nNums; i++){
-		data[i]["y"] = correlatedValue(data[i].x, 0.9)
-	}
+
+var corr_strengths = [-0.9, -0.85, 0.85, 0.9]
+
+for(i = 0; i < nNums; i++){
+    data[i]["y"] = correlatedValue(data[i].x, corr_strengths[Math.round(getRandom(0,3))])
 }
 	
 
 
-//x.domain(d3.extent(data, function(d) { return d.x; })).nice();
-//y.domain(d3.extent(data, function(d) { return d.y; })).nice();
-x.domain([-4,4])
-y.domain([-4,4])
+var domain = d3.extent(data, function(d) { return d.x; })
+var domain = domain.concat(d3.extent(data, function(d) { return d.y; }))
+
+var extent = [d3.min(domain), d3.max(domain)]
+
+x.domain(extent).nice();
+y.domain(extent).nice();
+
 
 var xAxis = d3.axisBottom()
     .scale(x);
@@ -207,9 +206,9 @@ var yAxis = d3.axisLeft()
 		
 		// apply the reults of the least squares regression
 		var x1line = d3.min(xSeries);
-		var y1line = leastSquaresCoeff[1];
+		var y1line = d3.min(xSeries)*leastSquaresCoeff[0] + leastSquaresCoeff[1];
 		var x2line = d3.max(xSeries);
-		var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
+		var y2line = d3.max(xSeries)*leastSquaresCoeff[0] + leastSquaresCoeff[1];
 		var trendData = [[x1line, y1line, x2line, y2line]];
 		
 		var trueCorr = pearsonCorrelation([xSeries,ySeries], 0,1)
@@ -227,6 +226,8 @@ var yAxis = d3.axisLeft()
 			.attr("stroke", "black")
 			.attr("opacity", 0)
 			.attr("stroke-width", 2);
+			
+			
 			
 //-------------------------- dots and axes -------------------------------------          
     g.selectAll(".dot")
@@ -562,9 +563,9 @@ function resets(){console.log("over 9000!")
 	
 	// apply the reults of the least squares regression
 	var x1line = d3.min(xSeries);
-	var y1line = leastSquaresCoeff[0] + leastSquaresCoeff[1];
+	var y1line = d3.min(xSeries)*leastSquaresCoeff[0] + leastSquaresCoeff[1];
 	var x2line = d3.max(xSeries);
-	var y2line = leastSquaresCoeff[0] * d3.max(xSeries) + leastSquaresCoeff[1];
+	var y2line = d3.max(xSeries)*leastSquaresCoeff[0] + leastSquaresCoeff[1];
 	var trendData = [[x1line, y1line, x2line, y2line]];
 	
 	var trendline = g.selectAll(".trendline")
@@ -609,8 +610,6 @@ function resets(){console.log("over 9000!")
                  //.transition(d3.transition().duration(2750).ease(d3.easeExpIn))
                  //.attr("opacity", "1");
 				 
-				 
-	var correctData = [[Math.sqrt(leastSquaresCoeff[2]),0,Math.sqrt(leastSquaresCoeff[2]),height2]]
 
 	var correctLine = g2.selectAll(".correctLine")
 		.data(correctData);  
@@ -663,6 +662,28 @@ function gaussian(mean, stdev) {
    }
 }   
 
+function rnd2() {
+    return ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
+}
+
+function randn_bm() {
+    var u = 1 - Math.random(); // Subtraction to flip [0, 1) to (0, 1].
+    var v = 1 - Math.random();
+    return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+}
+
+function normal(mu, sigma, nsamples){
+    if(!nsamples) nsamples = 6
+    if(!sigma) sigma = 1
+    if(!mu) mu=0
+
+    var run_total = 0
+    for(var i=0 ; i<nsamples ; i++){
+       run_total += Math.random()
+    }
+
+    return sigma*(run_total - nsamples/2)/(nsamples/2) + mu
+}
 
 //---------------------------- OLS regression ----------------------------------
 	// returns slope, intercept and r-square of the line
@@ -687,6 +708,54 @@ function gaussian(mean, stdev) {
 		
 		return [slope, intercept, rSquare];
 	}
+// ---------------------------- pearson correlation ----------------------------
+
+function getPearsonCorrelation(x, y) {
+    var shortestArrayLength = 0;
+     
+    if(x.length == y.length) {
+        shortestArrayLength = x.length;
+    } else if(x.length > y.length) {
+        shortestArrayLength = y.length;
+        console.error('x has more items in it, the last ' + (x.length - shortestArrayLength) + ' item(s) will be ignored');
+    } else {
+        shortestArrayLength = x.length;
+        console.error('y has more items in it, the last ' + (y.length - shortestArrayLength) + ' item(s) will be ignored');
+    }
+  
+    var xy = [];
+    var x2 = [];
+    var y2 = [];
+  
+    for(var i=0; i<shortestArrayLength; i++) {
+        xy.push(x[i] * y[i]);
+        x2.push(x[i] * x[i]);
+        y2.push(y[i] * y[i]);
+    }
+  
+    var sum_x = 0;
+    var sum_y = 0;
+    var sum_xy = 0;
+    var sum_x2 = 0;
+    var sum_y2 = 0;
+  
+    for(var i=0; i< shortestArrayLength; i++) {
+        sum_x += x[i];
+        sum_y += y[i];
+        sum_xy += xy[i];
+        sum_x2 += x2[i];
+        sum_y2 += y2[i];
+    }
+  
+    var step1 = (shortestArrayLength * sum_xy) - (sum_x * sum_y);
+    var step2 = (shortestArrayLength * sum_x2) - (sum_x * sum_x);
+    var step3 = (shortestArrayLength * sum_y2) - (sum_y * sum_y);
+    var step4 = Math.sqrt(step2 * step3);
+    var answer = step1 / step4;
+  
+    return answer;	
+}	
+	
 //---------------------------- get random numbers ------------------------------
 
 function getRandom(min, max) {
