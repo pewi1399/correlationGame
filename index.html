@@ -318,6 +318,21 @@ correctLine.enter()
 	.attr("stroke", "black")
 	.attr("opacity", 1)
 	.attr("stroke-width", 2);
+	
+	
+	
+	svg.selectAll(".texts")
+			 .data([1])
+			 .enter()
+			 .append("text")
+			 .attr("class", "texts")
+			 .attr("x", width/2)
+			 .attr("y",height/2)
+			 .text("ρ ="+Math.round(trueCorr*100)/100)
+			 .attr("font-family", "sans-serif")
+			 .attr("font-size", "26px")
+			 .attr("opacity",0)
+			 .attr("fill", "grey");
 /*      */
 //window.g2 = g2
 //---------------------------- functions ---------------------------------------
@@ -499,21 +514,12 @@ function answer(){
 	  }
 	  );
 	  	    
-	svg.selectAll(".texts")
-                 .data([1])
-                 .enter()
-                 .append("text")
-                 .attr("class", "texts")
-                 .attr("x", width/2)
-                 .attr("y",height/2)
-                 .text("ρ ="+Math.round(trueCorr*100)/100)
-                 .attr("font-family", "sans-serif")
-                 .attr("font-size", "26px")
-                 .attr("opacity",0)
-                 .attr("fill", "grey")
-                 .transition(d3.transition().duration(2750).ease(d3.easeExpIn))
-                 .attr("opacity", "1");
-				 
+	d3.selectAll(".texts")
+			.transition(d3.transition().duration(2750).ease(d3.easeExpIn))
+			.attr("opacity", "1");
+
+		
+if(typeof cell != "undefined"){		
 	cell.append("text")
 	 .attr("class", "textbees")
 	 .attr("x", function(d){ return d.data.x-20;})
@@ -527,6 +533,7 @@ function answer(){
 		.attr("opacity", 0)
 		.transition(tAnswer)
 		.attr("opacity", 1)
+	}
 }
 
 //----------------------------------- reset  --------------------------------------
@@ -536,10 +543,11 @@ function resets(){console.log("over 9000!")
 
 
 	var dt = new Date();
+	window.dt = dt
 	// -------------------- part 1: clean up old elements ----------------------
 	//remove all old elements
 	d3.selectAll(".trendline").remove();
-	d3.selectAll(".texts").remove();
+	d3.selectAll(".texts").attr("opacity", 0);
 	d3.selectAll(".dot").remove();
 
 	d3.selectAll(".correctLine").remove();
@@ -599,6 +607,8 @@ function resets(){console.log("over 9000!")
 		.data(trendData);
 		
 	var trueCorr = pearsonCorrelation([xSeries,ySeries], 0,1)
+	
+	d3.selectAll(".texts").text("ρ ="+Math.round(trueCorr*100)/100)
 	
 	//puts in new trendline	
 	trendline.enter()
