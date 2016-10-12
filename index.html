@@ -572,28 +572,16 @@ function resets(){console.log("over 9000!")
   y.domain(extent).nice();
   
   xAxis.scale(x)
+  yAxis.scale(y)
   
 //redraw axis  
   g.selectAll(".x_axis")
     .transition()
-    .call(xAxis)
-  .append("text")
-    .attr("class", "label")
-    .attr("x", width)
-    .attr("y", -6)
-    .style("text-anchor", "end")
-    .text("Sepal Width (cm)");
+    .call(xAxis);
 
-  g.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
-    .append("text")
-      .attr("class", "label")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Sepal Length (cm)")
+  g.selectAll(".y_axis")
+    .transition()
+      .call(yAxis);
 	
 	var xSeries = data.map(function(d) { return parseFloat(d['x']); })
 	var ySeries = data.map(function(d) { return parseFloat(d['y']); });
@@ -609,6 +597,8 @@ function resets(){console.log("over 9000!")
 	
 	var trendline = g.selectAll(".trendline")
 		.data(trendData);
+		
+	var trueCorr = pearsonCorrelation([xSeries,ySeries], 0,1)
 	
 	//puts in new trendline	
 	trendline.enter()
@@ -641,7 +631,7 @@ function resets(){console.log("over 9000!")
                  .attr("class", "texts")
                  .attr("x", width/2)
                  .attr("y",height/2)
-                 .text("ρ ="+Math.round(leastSquaresCoeff[0]*100)/100)
+                 .text("ρ ="+Math.round(trueCorr*100)/100)
                  .attr("font-family", "sans-serif")
                  .attr("font-size", "26px")
                  .attr("opacity",0)
