@@ -247,7 +247,7 @@ var yAxis = d3.axisLeft()
         .attr("fill", "dodgerblue")
         
   g.append("g")
-      .attr("class", "x axis")
+      .attr("class", "x_axis")
       .attr("transform", "translate(0," + height + ")")
       .call(xAxis)
     .append("text")
@@ -258,7 +258,7 @@ var yAxis = d3.axisLeft()
       .text("Sepal Width (cm)");
 
   g.append("g")
-      .attr("class", "y axis")
+      .attr("class", "y_axis")
       .call(yAxis)
     .append("text")
       .attr("class", "label")
@@ -551,11 +551,37 @@ function resets(){console.log("over 9000!")
 	
 	// ---------------------------- part 2: redraw  -------------------------------
 	// generate new data
-	var data = []
+  var data = []
+  
+  for(i = 0; i < nNums; i++){
+      data[i] = {"x":normal(0,1,1)};  
+  }
 
-	for(i = 0; i < nNums; i++){
-		data[i] = {"x":getRandom(0,400), "y":getRandom(0,400)};  
-	}
+  var corr_strengths = [-0.9, -0.85, 0.85, 0.9]
+  
+  for(i = 0; i < nNums; i++){
+      data[i]["y"] = correlatedValue(data[i].x, corr_strengths[Math.round(getRandom(0,3))])
+  }
+  
+  var domain = d3.extent(data, function(d) { return d.x; })
+  var domain = domain.concat(d3.extent(data, function(d) { return d.y; }))
+  
+  var extent = [d3.min(domain), d3.max(domain)]
+  
+  x.domain(extent).nice();
+  y.domain(extent).nice();
+  
+  xAxis.scale(x)
+  yAxis.scale(y)
+  
+//redraw axis  
+  g.selectAll(".x_axis")
+    .transition()
+    .call(xAxis);
+
+  g.selectAll(".y_axis")
+    .transition()
+      .call(yAxis);
 	
 	var xSeries = data.map(function(d) { return parseFloat(d['x']); })
 	var ySeries = data.map(function(d) { return parseFloat(d['y']); });
@@ -571,6 +597,8 @@ function resets(){console.log("over 9000!")
 	
 	var trendline = g.selectAll(".trendline")
 		.data(trendData);
+		
+	var trueCorr = pearsonCorrelation([xSeries,ySeries], 0,1)
 	
 	//puts in new trendline	
 	trendline.enter()
@@ -603,7 +631,7 @@ function resets(){console.log("over 9000!")
                  .attr("class", "texts")
                  .attr("x", width/2)
                  .attr("y",height/2)
-                 .text("ρ ="+Math.round(leastSquaresCoeff[0]*100)/100)
+                 .text("ρ ="+Math.round(trueCorr*100)/100)
                  .attr("font-family", "sans-serif")
                  .attr("font-size", "26px")
                  .attr("opacity",0)
